@@ -18,7 +18,7 @@ import nclient_beta
 
 #function where the UNAVCO caster parameters are set.
 def func_site():
-	user='-u joshj55:ZxBIQ4K2'
+	user='-u'
 	caster='rtgpsout.unavco.org'
 	port='2110'
 	site='AC20_RTX'
