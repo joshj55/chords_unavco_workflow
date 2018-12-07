@@ -1,8 +1,8 @@
+# # Introduction
+
 This is the README file with information and instructions for the suite of scripts used to access UNAVCO Real-Time Data stream and upload parsed data to the online cybertool CHORDS.
 Creator: Josh Jones, D. Sarah Stamps
 Institution: Virginia Tech
-Last Date Modified: 5 Dec 2018
-# Introduction
 
 The following are the scripts provided and required for the main code to run (chords_stream.py), but note the actual instructions are below for running the code:
 
