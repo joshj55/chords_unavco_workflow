@@ -1,4 +1,4 @@
-# # Introduction
+# Introduction
 
 This is the README file with information and instructions for the suite of scripts used to access UNAVCO Real-Time Data stream and upload parsed data to the online cybertool CHORDS.
 Creator: Josh Jones, D. Sarah Stamps
