@@ -52,10 +52,10 @@ def getargs(argv):
 
 	description = 'Stream UNVACO GNSS to CHORDS.'
 	epilog = """
-The json file is structured as
-follows (order is not important):
+The json file is structured as follows (order is not important):
 {
   "caster_ip":   "caster IP name",
+  "caster_port": "caster port number",
   "caster_user": "caster user name",
   "caster_pw":   "caster password",
   "chords_ip":   "CHORDS portal IP name",
@@ -73,6 +73,10 @@ follows (order is not important):
 	parser.add_argument(
 		'-j', '--json', metavar='file', action='store',type=str,
 						help='json configuration file', required=True)
+	parser.add_argument(
+		'-v', '--verbose', metavar='verbose', action='store',type=bool, default=False,
+						help='enable debug printing')
+
 	args = parser.parse_args()
 
 	args_dict = vars(args)
