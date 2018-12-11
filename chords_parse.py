@@ -20,9 +20,11 @@ from optparse import OptionParser
 import nclient_beta
 import chords_stream
 
-#function that parses the strings for latitude and longitude.
-#Requires string,direction as input which are read from the input file and contained in the path read
 def parse_string(string,direction):
+	"""Parse the strings for latitude and longitude.
+
+	Requires string,direction as input which are read from the input file and contained in the path read.
+	"""
 	string_val= map(str,string)
 	string_test=string.split('.')
 	string_deg= string_val[0]
@@ -47,8 +49,9 @@ def parse_string(string,direction):
 	return string_final
 
 
-#Pareses the time field read from the input file and place it into CHORDS format hr/min/sec
 def parse_time(time):
+	"""Parses the time field read from the input file and place it into CHORDS format hr/min/sec."""
+
 	time_string= map(str,time)
 	time_split= time.split('.')
 	time_front=time_split[0]
@@ -59,8 +62,9 @@ def parse_time(time):
 	return time_fin
 
 
-#Parses the data read from the input file and places it into CHORDS format yr/mon/day
 def parse_date(date):
+	"""Parses the data read from the input file and places it into CHORDS format yr/mon/day."""
+
 	date_string= map(str,date)
 	date_mon= date_string[0]+date_string[1]
 	date_day= (date_string[2])+(date_string[3])
@@ -69,8 +73,9 @@ def parse_date(date):
 	return date_fin
 
 
-#Reads the input file and takes the information to be parse
 def read_file(filename):
+	"""Reads the input file and takes the information to be parsed."""
+
 	path= open(filename, "r")
 	read_path= path.readline()
 	path.close()
@@ -83,6 +88,34 @@ def read_file(filename):
 	path.writelines(updated_path)
 	path.close()
 	return read_path
+
+def send_to_chords(gnss_line, chords_ip, site_id, chords_key=None, verbose = False):
+	myline = gnss_line.split(',')
+	time= myline[2]
+	date= myline[3]
+	latitude_string= myline[4]
+	latitude_dir= myline[5]
+	longitude_string= myline[6]
+	longitude_dir= myline[7]
+	latitude_final = str(parse_string(latitude_string,latitude_dir))
+	longitude_final= str(parse_string(longitude_string,longitude_dir))
+	time_final= str(parse_time(time))
+	date_final= str(parse_date(date))
+	height= str(myline[11])[3:]
+#	date_fin = datetime.utcnow().strftime("%Y-%m-%d")
+#	time_fin = datetime.utcnow().strftime("%H:%M:%S")
+	url = 'http://' + chords_ip + '/measurements/url_create?instrument_id=' + site_id + \
+		'&lat=' + latitude_final + \
+		'&lon=' + longitude_final + \
+		'&height=' + height + \
+		'at=' + date_final + 'T' + time_final
+	if chords_key:
+		url = url + "&key=" + chords_key
+	if verbose:
+		print(url)
+	response=requests.get(url=url)
+	if verbose:
+		print(response)
 
 
 #Runs the above function and splits the read line from the input file by commas and assign them to variables for the functions
