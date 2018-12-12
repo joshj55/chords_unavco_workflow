@@ -25,6 +25,9 @@ import chords_parse
 # Set true for debugging prints.
 verbose = False
 
+# Maximum number of caster authorization attempts.
+MAX_CASTER_AUTH_ATTEMPTS = 5
+
 def execute(cmd):
 	"""Runs the chords_background script that activates the UNAVCO caster in the background."""
 
@@ -89,7 +92,7 @@ Set chords_key to an empty string if it is not required.
 	# Was an accesible configuration file specified?
 	jsonfile = args_dict['json']
 	if not os.access(jsonfile, os.R_OK):
-		print("Configuration file", jsonfile,"is not readable.")
+		print("ERROR: Configuration file", jsonfile,"is not readable.")
 		exit(1)
 
 	# Enable/disable verbosity
@@ -104,11 +107,11 @@ def get_options(config_file):
 	try:
 		options = json.load(open(config_file))
 	except ValueError as e:
-		print('Error in the configuration file: %s. %s' % (config_file, e))
+		print('ERROR: Error in the configuration file: %s. %s' % (config_file, e))
 		exit(1)
 
 	if not validate_options(options):
-		print('Error(s) detected in the configuration file:', config_file)
+		print('ERROR: Error(s) detected in the configuration file:', config_file)
 		exit(1)
 
 	if verbose:
@@ -148,7 +151,7 @@ def run_nclient(options):
 
 	# Sometimes it takes a few tries to succesfully authorize with caster
 	auth_retries = 0
-	while auth_retries < 5:
+	while auth_retries < MAX_CASTER_AUTH_ATTEMPTS:
 		output = subprocess.Popen(cmd, stdout=subprocess.PIPE, universal_newlines=True)
 		for line in iter(output.stdout.readline, ""):
 			line = line.strip()
@@ -158,9 +161,12 @@ def run_nclient(options):
 		if return_code == 2:
 			auth_retries = auth_retries + 1
 			time.sleep(1)
-			print('Caster authorization failed, trying again...')
+			print('WARNING: Caster authorization failed, trying again...')
 		else:
 			break
+	if auth_retries > MAX_CASTER_AUTH_ATTEMPTS:
+		print('Error: caster authorization failed after', MAX_CASTER_AUTH_ATTEMPTS, 'attempts.')
+		exit(1)
 	if return_code:
 		raise subprocess.CalledProcessError(return_code, cmd)
 
@@ -182,7 +188,7 @@ if __name__=='__main__':
 	# Run nclient, and feed the data lines to CHORDS
 	for gnss_line in run_nclient(options):
 		if 'Unauthorized' in gnss_line:
-			print('Authentication to', options['caster_ip']+':'+options['caster_port'], 'failed for user', options['caster_user'])
+			print('Error: Authentication to', options['caster_ip']+':'+options['caster_port'], 'failed for user', options['caster_user'])
 			exit(1)
 		if gnss_line[0] == '$':
 			if verbose:

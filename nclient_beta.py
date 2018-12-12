@@ -172,6 +172,7 @@ class NtripClient(object):
             raise MountPointException
         elif caster_response.find('401 Unauthorized') >= 0:
             logger.error('Unauthorized request')
+            # Exit code 2 for authorization failure.
             sys.exit(2)
         elif caster_response.find('ICY 200 OK') >= 0:
             logger.info('Connected successfully...')
