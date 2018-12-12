@@ -22,6 +22,7 @@ import pprint
 import nclient_beta
 import chords_parse
 
+# Set true for debugging prints.
 verbose = False
 
 def execute(cmd):
@@ -100,7 +101,11 @@ def get_options(config_file):
 	"""Return the configuration file options as a dictionary."""
 	
 	# Read the json configuration from the file, importing it as a dictionary.
-	options = json.load(open(config_file))
+	try:
+		options = json.load(open(config_file))
+	except ValueError as e:
+		print('Error in the configuration file: %s. %s' % (config_file, e))
+		exit(1)
 
 	if not validate_options(options):
 		print('Error(s) detected in the configuration file:', config_file)
