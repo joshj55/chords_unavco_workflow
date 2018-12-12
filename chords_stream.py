@@ -145,14 +145,24 @@ def run_nclient(options):
 	cmd = ['python', './nclient_beta.py', '-u', user+":"+pw, ip, port, site]
 	if verbose:
 		print(cmd)
-	output = subprocess.Popen(cmd, stdout=subprocess.PIPE, universal_newlines=True)
-	for line in iter(output.stdout.readline, ""):
-		line = line.strip()
-		yield line
-	output.stdout.close()
-	return_code = output.wait()
+
+	# Sometimes it takes a few tries to succesfully authorize with caster
+	auth_retries = 0
+	while auth_retries < 5:
+		output = subprocess.Popen(cmd, stdout=subprocess.PIPE, universal_newlines=True)
+		for line in iter(output.stdout.readline, ""):
+			line = line.strip()
+			yield line
+		output.stdout.close()
+		return_code = output.wait()
+		if return_code == 2:
+			auth_retries = auth_retries + 1
+			time.sleep(1)
+			print('Caster authorization failed, trying again...')
+		else:
+			break
 	if return_code:
-		raise subprocess.CalledProcessError(return_code,cmd)
+		raise subprocess.CalledProcessError(return_code, cmd)
 
 if __name__=='__main__':
 	"""Main block of code that repeats a connection request until connection with UNAVCO caster is made."""
