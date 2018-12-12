@@ -43,11 +43,12 @@ def write_file(filename,write_line):
 	open_file.write(str(write_line))
 	return filename
 
-def getargs(argv):
+def get_args(argv):
 	"""Parse the command line arguments.
 
 	Keyword arguments:
 	argv -- the command line argument vector
+
 	The arguments are returned as the argparse dictionary.
 	"""
 
@@ -95,7 +96,7 @@ Set chords_key to an empty string if it is not required.
 
 	return args_dict
 
-def getoptions(config_file):
+def get_options(config_file):
 	"""Return the configuration file options as a dictionary."""
 	
 	j = json.load(open(config_file))
@@ -106,6 +107,12 @@ def getoptions(config_file):
 	return j
 
 def run_nclient(options):
+	""" Run nclient as a subprocess, returning data lines via yield.
+
+	Keyword arguments:
+	options -- a dictionary containing the json configuration file options.
+	"""
+
 	user    = options['caster_user']
 	pw      = options['caster_pw']
 	port    = options['caster_port']
@@ -126,8 +133,12 @@ def run_nclient(options):
 
 if __name__=='__main__':
 	"""Main block of code that repeats a connection request until connection with UNAVCO caster is made."""
-	args = getargs(argv=sys.argv)
-	options = getoptions(args['json'])
+	
+	# Get the command line arguments.
+	args = get_args(argv=sys.argv)
+	
+	# Get the configuration options
+	options = get_options(args['json'])
 
 	chords_ip = options['chords_ip']
 	chords_inst_id = options['sites'][0]['chords_inst_id']
@@ -135,11 +146,12 @@ if __name__=='__main__':
 	if options['chords_key'] != '':
 		chords_key = options['chords_key']
 
+	# Run nclient, and feed the data lines to CHORDS
 	for gnss_line in run_nclient(options):
 		if 'Unauthorized' in gnss_line:
 			print('Authentication to', options['caster_ip']+':'+options['caster_port'], 'failed for user', options['caster_user'])
 			exit(1)
-		if '$'in gnss_line:
+		if gnss_line[0] == '$':
 			if verbose:
 				print(gnss_line)
 			chords_parse.send_to_chords(
@@ -147,3 +159,5 @@ if __name__=='__main__':
 				chords_ip=chords_ip, 
 				chords_key=chords_key,
 				chords_inst_id=chords_inst_id, verbose=verbose)
+		else:
+			print('Unrecognized line returned from caster:', gnss_line)
