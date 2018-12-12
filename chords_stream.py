@@ -132,7 +132,7 @@ def validate_options(options):
 	if 'caster_ip' not in options:
 		print('Configuration error: "caster_ip" is not present')
 		ok = False
-	if 'caster_poty' not in options:
+	if 'caster_port' not in options:
 		print('Configuration error: "caster_port" is not present')
 		ok = False
 
