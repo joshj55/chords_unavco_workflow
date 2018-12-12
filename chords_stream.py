@@ -125,9 +125,15 @@ def validate_options(options):
 	return: True if ok, False otherwise.
 	"""
 
+	# THIS ROUTINE NEEDS TO BE COMPLETED FOR ALL OPTIONS,
+	# INCLUDING THE ARRAY OF SITES.
+
 	ok = True
 	if 'caster_ip' not in options:
 		print('Configuration error: "caster_ip" is not present')
+		ok = False
+	if 'caster_poty' not in options:
+		print('Configuration error: "caster_port" is not present')
 		ok = False
 
 	return ok
