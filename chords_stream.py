@@ -21,12 +21,16 @@ import json
 import pprint
 import nclient_beta
 import chords_parse
+import logging
 
 # Set true for debugging prints.
 verbose = False
 
 # Maximum number of caster authorization attempts.
-MAX_CASTER_AUTH_ATTEMPTS = 5
+MAX_CASTER_AUTH_ATTEMPTS = 10
+
+logger = logging.getLogger(__name__)
+module_name = file_name = __file__.split("/")[len(__file__.split("/"))-1]
 
 def execute(cmd):
 	"""Runs the chords_background script that activates the UNAVCO caster in the background."""
@@ -92,7 +96,7 @@ Set chords_key to an empty string if it is not required.
 	# Was an accesible configuration file specified?
 	jsonfile = args_dict['json']
 	if not os.access(jsonfile, os.R_OK):
-		print("ERROR: Configuration file", jsonfile,"is not readable.")
+		logger.error("Configuration file %s is not readable." % (jsonfile,))
 		exit(1)
 
 	# Enable/disable verbosity
@@ -107,11 +111,11 @@ def get_options(config_file):
 	try:
 		options = json.load(open(config_file))
 	except ValueError as e:
-		print('ERROR: Error in the configuration file: %s. %s' % (config_file, e))
+		logger.error('Error in the configuration file: %s. %s' % (config_file, e))
 		exit(1)
 
 	if not validate_options(options):
-		print('ERROR: Error(s) detected in the configuration file:', config_file)
+		logger.error('Error(s) detected in the configuration file: %s' % (config_file,))
 		exit(1)
 
 	if verbose:
@@ -130,10 +134,10 @@ def validate_options(options):
 
 	ok = True
 	if 'caster_ip' not in options:
-		print('Configuration error: "caster_ip" is not present')
+		logger.error('Configuration error: "caster_ip" is not present')
 		ok = False
 	if 'caster_port' not in options:
-		print('Configuration error: "caster_port" is not present')
+		logger.error('Configuration error: "caster_port" is not present')
 		ok = False
 
 	return ok
@@ -167,11 +171,11 @@ def run_nclient(options):
 		if return_code == 2:
 			auth_retries = auth_retries + 1
 			time.sleep(1)
-			print('WARNING: Caster authorization failed, trying again...')
+			logger.warning('Caster authorization failed, trying again...')
 		else:
 			break
 	if auth_retries > MAX_CASTER_AUTH_ATTEMPTS:
-		print('Error: caster authorization failed after', MAX_CASTER_AUTH_ATTEMPTS, 'attempts.')
+		logger.error('Caster authorization failed after %d attempts.' % (MAX_CASTER_AUTH_ATTEMPTS,))
 		exit(1)
 	if return_code:
 		raise subprocess.CalledProcessError(return_code, cmd)
@@ -179,6 +183,9 @@ def run_nclient(options):
 if __name__=='__main__':
 	"""Main block of code that repeats a connection request until connection with UNAVCO caster is made."""
 	
+	logging.basicConfig(level=logging.INFO, stream=sys.stderr,
+                        format='%(asctime)s (' + module_name + ') %(levelname)s: %(message)s')
+
 	# Get the command line arguments.
 	args = get_args(argv=sys.argv)
 	
@@ -194,7 +201,7 @@ if __name__=='__main__':
 	# Run nclient, and feed the data lines to CHORDS
 	for gnss_line in run_nclient(options):
 		if 'Unauthorized' in gnss_line:
-			print('Error: Authentication to', options['caster_ip']+':'+options['caster_port'], 'failed for user', options['caster_user'])
+			logger.error('Error: Authentication to %s:%s failed for user %s' % (options['caster_ip'], options['caster_port'], options['caster_user']))
 			exit(1)
 		if gnss_line[0] == '$':
 			if verbose:
@@ -205,4 +212,4 @@ if __name__=='__main__':
 				chords_key=chords_key,
 				chords_inst_id=chords_inst_id, verbose=verbose)
 		else:
-			print('Unrecognized line returned from caster:', gnss_line)
+			logger.warning('Unrecognized line returned from caster: %s' % (gnss_line,))
