@@ -99,12 +99,30 @@ Set chords_key to an empty string if it is not required.
 def get_options(config_file):
 	"""Return the configuration file options as a dictionary."""
 	
-	j = json.load(open(config_file))
+	# Read the json configuration from the file, importing it as a dictionary.
+	options = json.load(open(config_file))
+
+	if not validate_options(options):
+		print('Error(s) detected in the configuration file:', config_file)
+		exit(1)
 
 	if verbose:
-		pprint.pprint(j)
+		pprint.pprint(options)
 
-	return j
+	return options
+
+def validate_options(options):
+	"""Validate that all of the required options are specified and legitimate.
+
+	return: True if ok, False otherwise.
+	"""
+
+	ok = True
+	if 'caster_ip' not in options:
+		print('Configuration error: "caster_ip" is not present')
+		ok = False
+
+	return ok
 
 def run_nclient(options):
 	""" Run nclient as a subprocess, returning data lines via yield.
