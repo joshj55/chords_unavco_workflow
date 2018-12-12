@@ -67,9 +67,9 @@ The json file is structured as follows (order is not important):
   "chords_ip":   "CHORDS portal IP name",
   "chords_key":  "CHORDS portal data ingest key",
   "sites": [
-    {"caster_site": "1st caster site", "chords_inst_id": "chords instrument id"},
+    {"caster_site": "1st caster site", "chords_inst_id": "1st chords instrument id"},
     ...
-    {"caster_site": "nth caster site", "chords_inst_id": "chords instrument id"}
+    {"caster_site": "nth caster site", "chords_inst_id": "nth chords instrument id"}
   ]
 }
 Set chords_key to an empty string if it is not required.
