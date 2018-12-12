@@ -24,6 +24,7 @@ import os
 __version__ = 0.2
 
 logger = logging.getLogger(__name__)
+module_name = file_name = __file__.split("/")[len(__file__.split("/"))-1]
 
 useragent = 'NTRIP UnavcoPythonClient/%.1f' % __version__
 
@@ -286,7 +287,7 @@ Default: %%(default)s''' % user_environment_var)
     n = NtripClient(**ntrip_args)
 
     logging.basicConfig(level=logging.INFO, stream=sys.stderr,
-                        format='%(asctime)s %(levelname)s: %(message)s')
+                        format='%(asctime)s (' + module_name + ') %(levelname)s: %(message)s')
 
     try:
         n.read_data()
