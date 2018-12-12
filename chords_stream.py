@@ -162,7 +162,7 @@ def run_nclient(options):
 	# Sometimes it takes a few tries to succesfully authorize with caster
 	auth_retries = 0
 	while auth_retries < MAX_CASTER_AUTH_ATTEMPTS:
-		output = subprocess.Popen(cmd, stdout=subprocess.PIPE, universal_newlines=True)
+		output = subprocess.Popen(cmd, stdout=subprocess.PIPE, bufsize=-1, universal_newlines=True)
 		for line in iter(output.stdout.readline, ""):
 			line = line.strip()
 			yield line
