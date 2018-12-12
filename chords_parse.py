@@ -89,7 +89,7 @@ def read_file(filename):
 	path.close()
 	return read_path
 
-def send_to_chords(gnss_line, chords_ip, site_id, chords_key=None, verbose = False):
+def send_to_chords(gnss_line, chords_ip, chords_inst_id, chords_key=None, verbose = False):
 	myline = gnss_line.split(',')
 	time= myline[2]
 	date= myline[3]
@@ -104,7 +104,7 @@ def send_to_chords(gnss_line, chords_ip, site_id, chords_key=None, verbose = Fal
 	height= str(myline[11])[3:]
 #	date_fin = datetime.utcnow().strftime("%Y-%m-%d")
 #	time_fin = datetime.utcnow().strftime("%H:%M:%S")
-	url = 'http://' + chords_ip + '/measurements/url_create?instrument_id=' + site_id + \
+	url = 'http://' + chords_ip + '/measurements/url_create?instrument_id=' + chords_inst_id + \
 		'&lat=' + latitude_final + \
 		'&lon=' + longitude_final + \
 		'&height=' + height + \

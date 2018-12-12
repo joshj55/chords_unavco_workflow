@@ -62,10 +62,9 @@ The json file is structured as follows (order is not important):
   "chords_ip":   "CHORDS portal IP name",
   "chords_key":  "CHORDS portal data ingest key",
   "sites": [
-    "1st caster site identifier",
-    "2nd caster site identifier",
+    {"caster_site": "1st caster site", "chords_inst_id": "chords instrument id"},
     ...
-    "nth caster site identifier"
+    {"caster_site": "nth caster site", "chords_inst_id": "chords instrument id"}
   ]
 }
 Set chords_key to an empty string if it is not required.
@@ -107,16 +106,16 @@ def getoptions(config_file):
 	return j
 
 def run_nclient(options):
-	user = options['caster_user']
-	pw = options['caster_pw']
-	port = options['caster_port']
-	ip = options['caster_ip']
-	user_pw = user + ":" + pw
-	site = options['sites'][0]
-	cmd=['python', './nclient_beta.py', '-u', user_pw, ip, port, site]
+	user    = options['caster_user']
+	pw      = options['caster_pw']
+	port    = options['caster_port']
+	ip      = options['caster_ip']
+	site    = options['sites'][0]["caster_site"]
+
+	cmd = ['python', './nclient_beta.py', '-u', user+":"+pw, ip, port, site]
 	if verbose:
 		print(cmd)
-	output= subprocess.Popen(cmd, stdout=subprocess.PIPE, universal_newlines=True)
+	output = subprocess.Popen(cmd, stdout=subprocess.PIPE, universal_newlines=True)
 	for line in iter(output.stdout.readline, ""):
 		line = line.strip()
 		yield line
@@ -129,6 +128,13 @@ if __name__=='__main__':
 	"""Main block of code that repeats a connection request until connection with UNAVCO caster is made."""
 	args = getargs(argv=sys.argv)
 	options = getoptions(args['json'])
+
+	chords_ip = options['chords_ip']
+	chords_inst_id = options['sites'][0]['chords_inst_id']
+	chords_key = None
+	if options['chords_key'] != '':
+		chords_key = options['chords_key']
+
 	for gnss_line in run_nclient(options):
 		if 'Unauthorized' in gnss_line:
 			print('Authentication to', options['caster_ip']+':'+options['caster_port'], 'failed for user', options['caster_user'])
@@ -136,24 +142,8 @@ if __name__=='__main__':
 		if '$'in gnss_line:
 			if verbose:
 				print(gnss_line)
-			key = None
-			if options['chords_key'] != '':
-				key = options['chords_key']
 			chords_parse.send_to_chords(
 				gnss_line=gnss_line, 
-				chords_ip = options['chords_ip'], 
-				chords_key = key,
-				site_id = '8', verbose=verbose)
-
-	filename="chords_temp_data.txt"
-	data_flow = 0
-	while data_flow == 0:
-		for path in execute(['python','./chords_background.py']):
-			if 'Unauthorized' in path:
-				data_flow= 0
-			elif '$' in path:
-				data_flow= 1
-				write_line= path
-				write_file(filename,write_line)
-				execfile("./chords_parse.py")
-
+				chords_ip=chords_ip, 
+				chords_key=chords_key,
+				chords_inst_id=chords_inst_id, verbose=verbose)
